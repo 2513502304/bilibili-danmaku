@@ -30,7 +30,7 @@ field = {
 }
 
 
-def get_video_infomation(aid: str = None, bvid: str = None, cookie: str = None) -> dict:
+def get_video_information(aid: str = None, bvid: str = None, cookie: str = None) -> dict:
     '''
     从给定的 aid 或 bvid 中获取视频信息
     ---
@@ -112,7 +112,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         'type': 1,
     }
     if aid is not None or bvid is not None:
-        context = get_video_infomation(aid=aid, bvid=bvid, cookie=cookie)  # 获取视频信息
+        context = get_video_information(aid=aid, bvid=bvid, cookie=cookie)  # 获取视频信息
         # 解析获取到的数据
         data = context['data']
         aid = data['aid']  # 稿件 avid
