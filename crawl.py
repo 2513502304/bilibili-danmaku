@@ -178,7 +178,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         start_Ym = start_dt.strftime(format='%Y-%m')
         start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
         while start_index['data'] is None:  # 直到获取有记录的月份
-            time.sleep(np.random.randint(1, 3))  # 反爬
+            time.sleep(1 + np.random.rand())  # 反爬
             start_dt += relativedelta(months=1)
             start_Ym = start_dt.strftime(format='%Y-%m')
             start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
@@ -187,7 +187,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         end_Ym = end_dt.strftime(format='%Y-%m')
         end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
         while end_index['data'] is None:  # 直到获取有记录的月份
-            time.sleep(np.random.randint(1, 3))  # 反爬
+            time.sleep(1 + np.random.rand())  # 反爬
             end_dt += relativedelta(months=-1)
             end_Ym = end_dt.strftime(format='%Y-%m')
             end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
@@ -197,7 +197,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
     danmaku_seg = danmaku.DmSegMobileReply()
     # 遍历每个时间段
     for d in pd.date_range(start=start_dt, end=end_dt, freq='D'):
-        time.sleep(np.random.rand())  # 反爬
+        time.sleep(1 + np.random.rand())  # 反爬
         params.update({
             'date': str(d.date()),  # 弹幕日期，YYYY-MM-DD
         })
