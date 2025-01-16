@@ -173,27 +173,30 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
     # 结束时间
     end_dt: datetime = datetime.now() if end is None else datetime.strptime(end, '%Y-%m-%d')
     # 跳过没有弹幕记录的时间，以防用户输入错误的 start, end 参数导致获取速度变慢（跳过的最小时间单位步长为月）
-    start_Ym = start_dt.strftime(format='%Y-%m')
-    start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
-    while start_index['data'] is None:  # 直到获取有记录的月份
-        time.sleep(np.random.randint(1, 3))  # 反爬
-        start_dt += relativedelta(months=1)
+    if start is not None:
         start_Ym = start_dt.strftime(format='%Y-%m')
         start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
-    end_Ym = end_dt.strftime(format='%Y-%m')
-    end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
-    while end_index['data'] is None:  # 直到获取有记录的月份
-        time.sleep(np.random.randint(1, 3))  # 反爬
-        end_dt += relativedelta(months=-1)
+        while start_index['data'] is None:  # 直到获取有记录的月份
+            time.sleep(np.random.randint(1, 3))  # 反爬
+            start_dt += relativedelta(months=1)
+            start_Ym = start_dt.strftime(format='%Y-%m')
+            start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
+    # 跳过没有弹幕记录的时间，以防用户输入错误的 start, end 参数导致获取速度变慢（跳过的最小时间单位步长为月）
+    if end is not None:
         end_Ym = end_dt.strftime(format='%Y-%m')
         end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
+        while end_index['data'] is None:  # 直到获取有记录的月份
+            time.sleep(np.random.randint(1, 3))  # 反爬
+            end_dt += relativedelta(months=-1)
+            end_Ym = end_dt.strftime(format='%Y-%m')
+            end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
     # 将所有弹幕汇总为一个 json 对象，方便处理
     res_json = []
     # 初始化 protobuf 中定义的数据结构
     danmaku_seg = danmaku.DmSegMobileReply()
     # 遍历每个时间段
     for d in pd.date_range(start=start_dt, end=end_dt, freq='D'):
-        time.sleep(np.random.randint(1, 3))  # 反爬
+        time.sleep(np.random.rand())  # 反爬
         params.update({
             'date': str(d.date()),  # 弹幕日期，YYYY-MM-DD
         })
