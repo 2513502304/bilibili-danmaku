@@ -167,6 +167,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         raise ValueError('请输入视频的 aid/bvid')
     # 若视频弹幕数为 0，则返回空 dict
     if stat['danmaku'] == 0:
+        pprint(f'当前视频：{title} 弹幕数为 0')
         return {}
     # 开始时间
     start_dt: datetime = datetime.fromtimestamp(int(pubdate)) if start is None else datetime.strptime(start, '%Y-%m-%d')
