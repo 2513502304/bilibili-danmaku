@@ -200,7 +200,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         response = requests.get(url=url, headers=headers, params=params)
         # 解析文本 proto 字符串
         danmaku_seg.ParseFromString(response.content)
-        pprint(f'{d} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
+        pprint(f'{title}: {d} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
         # 遍历每条弹幕
         for e in danmaku_seg.elems:
             res_json.append(json_format.MessageToJson(e, ensure_ascii=False))
