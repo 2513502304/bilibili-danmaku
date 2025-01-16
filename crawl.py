@@ -165,6 +165,9 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
             params.update({'oid': cid})
     else:
         raise ValueError('请输入视频的 aid/bvid')
+    # 若视频弹幕数为 0，则返回空 dict
+    if stat['danmaku'] == 0:
+        return {}
     # 开始时间
     start_dt: datetime = datetime.fromtimestamp(int(pubdate)) if start is None else datetime.strptime(start, '%Y-%m-%d')
     # 结束时间
@@ -201,6 +204,6 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         # 遍历每条弹幕
         for e in danmaku_seg.elems:
             res_json.append(json_format.MessageToJson(e, ensure_ascii=False))
-    # 将 json 对象转存为 Python 对象
+    # 将 json 对象转存为 Python dict 对象
     dm = json.loads('[' + ','.join(res_json) + ']')
     return dm
