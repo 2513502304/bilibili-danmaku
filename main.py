@@ -17,9 +17,6 @@ cid = '27598718983'  # 视频弹幕的 cid，ignore
 # 替换为你自己的 cookie
 cookie = ''
 
-# 转存路径
-save_path = './茜特拉莉弹幕.csv'
-
 if __name__ == "__main__":
     # 从给定的 aid/bvid 与时间段中获取历史弹幕
     dm = get_history_danmaku(bvid=bvid, cookie=cookie)
@@ -32,7 +29,6 @@ if __name__ == "__main__":
         df['date'] = t.dt.date
         # 取时分秒赋值给 time 字段
         df['time'] = t.dt.time
-        df.to_csv(save_path)
-    # 弹幕数为 0，忽略其索引，以免为空 csv 写入空索引字段 "" 而非真正的空（nothing in this *.csv file）
-    else:
-        df.to_csv(save_path, index=False)
+    # 转存为 csv 文件
+    save_path = './茜特拉莉弹幕.csv'
+    df.to_csv(save_path)
