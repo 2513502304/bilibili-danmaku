@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime
 import time
 from pprint import pprint
-from google.protobuf import json_format
+from google.protobuf import message, json_format
 import dm_pb2 as danmaku
 import json
 import pandas as pd
@@ -89,21 +89,24 @@ def get_history_danmaku_index(cid: str = None, cookie: str = None, month: str = 
     return context
 
 
-def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie: str = None, start: str = None, end: str = None) -> dict:
+def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookies: list[str] = None, start: str = None, end: str = None, delay: float = 1.0) -> dict:
     '''
     从给定的 aid/bvid 与时间段中获取历史弹幕
     ---
     :param aid: 视频的 aid，可选。若 aid 为空，则必须提供 bvid 参数
     :param bvid: 视频的 bvid，可选。若 bvid 为空，则必须提供 aid 参数
     :param page: 视频分 p，可选。默认为 1
-    :param cookie: 必要的 cookie
-    :param start: 指定时间段开始，YYYY-MM-DD 格式，可选，默认为 None，表示从视频发布时间开始
-    :param end: 指定时间段结束，YYYY-MM-DD 格式，可选，默认为 None，表示至当前时间结束
+    :param cookies: 必要的 cookie 列表，若提供多个 cookie，将在当前账号被监测到的时候自动替换为下一个账号
+    :param start: 指定时间段开始，YYYY-MM-DD 格式，可选。默认为 None，表示从视频发布时间开始
+    :param end: 指定时间段结束，YYYY-MM-DD 格式，可选。默认为 None，表示至当前时间结束
+    :param delay: 每次请求的延迟时间，建议大于 1s，可选。默认为 1
     :return: 历史弹幕，每天最多返回 500 条弹幕数据，以 json 格式返回
     '''
     url = 'https://api.bilibili.com/x/v2/dm/web/history/seg.so'  # 获取历史弹幕 protobuf 接口，最小单位为天，每天最多返回 500 条弹幕数据
-    if cookie is None:
+    if cookies is None:
         raise ValueError('请输入有效的 Cookie')
+    cookies = iter(cookies)
+    cookie = next(cookies)
     headers = {
         'User-Agent': UserAgent().random,
         'Cookie': cookie,
@@ -167,7 +170,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         raise ValueError('请输入视频的 aid/bvid')
     # 若视频弹幕数为 0，则返回空 dict
     if stat['danmaku'] == 0:
-        pprint(f'当前视频：{title} 弹幕数为 0')
+        pprint(f'当前视频：{title}弹幕数为 0')
         return {}
     # 开始时间
     start_dt: datetime = datetime.fromtimestamp(int(pubdate)) if start is None else datetime.strptime(start, '%Y-%m-%d')
@@ -178,7 +181,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         start_Ym = start_dt.strftime(format='%Y-%m')
         start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
         while start_index['data'] is None:  # 直到获取有记录的月份
-            time.sleep(1 + np.random.rand())  # 反爬
+            time.sleep(delay)  # 反爬
             start_dt += relativedelta(months=1)
             start_Ym = start_dt.strftime(format='%Y-%m')
             start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
@@ -187,7 +190,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         end_Ym = end_dt.strftime(format='%Y-%m')
         end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
         while end_index['data'] is None:  # 直到获取有记录的月份
-            time.sleep(1 + np.random.rand())  # 反爬
+            time.sleep(delay)  # 反爬
             end_dt += relativedelta(months=-1)
             end_Ym = end_dt.strftime(format='%Y-%m')
             end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
@@ -197,17 +200,30 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
     danmaku_seg = danmaku.DmSegMobileReply()
     # 遍历每个时间段
     for d in pd.date_range(start=start_dt, end=end_dt, freq='D'):
-        time.sleep(1 + np.random.rand())  # 反爬
         params.update({
             'date': str(d.date()),  # 弹幕日期，YYYY-MM-DD
         })
-        response = requests.get(url=url, headers=headers, params=params)
-        # 解析文本 proto 字符串
-        danmaku_seg.ParseFromString(response.content)
-        pprint(f'{title}: {d} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
+        # 直到获取到正确的数据后退出
+        while True:
+            time.sleep(delay)  # 反爬
+            response = requests.get(url=url, headers=headers, params=params)
+            try:  # 当前账号被监测到导致返回数据解析失败
+                # 解析文本 proto 字符串
+                danmaku_seg.ParseFromString(response.content)
+            except message.DecodeError as e:  # google.protobuf.message.DecodeError: Error parsing message with type 'bilibili.community.service.dm.v1.DmSegMobileReply'
+                print(e)
+                try:
+                    # 替换为下一个账号
+                    cookie = next(cookies)
+                    headers.update({'Cookie': cookie})
+                except StopIteration as e:
+                    raise Exception('所有账号被平台监测，请在次日延长 delay 参数后重新运行')
+                continue
+            break
+        pprint(f'{title}: {d.date()} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
         # 遍历每条弹幕
         for e in danmaku_seg.elems:
             res_json.append(json_format.MessageToJson(e, ensure_ascii=False))
-    # 将 json 对象转存为 Python dict 对象
+    # 将 json 对象转存为 Python 对象
     dm = json.loads('[' + ','.join(res_json) + ']')
     return dm
