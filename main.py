@@ -2,33 +2,58 @@
 Author: 未来可欺 2513502304@qq.com
 Date: 2025-01-14 02:27:22
 LastEditors: 未来可欺 2513502304@qq.com
-LastEditTime: 2025-01-14 20:34:23
+LastEditTime: 2025-01-18 01:48:31
 Description: 支持任意历史时间筛选的 bilibili 弹幕爬虫
 '''
 
+import settings
 from crawl import get_history_danmaku
-import pandas as pd
+from storage import dump_history_danmaku
+import time
 
-# 茜特拉莉（bushi，原神怎么你了）
-aid = '113736958350047'  # 视频的 aid，可选。若 aid 为空，则必须提供 bvid 参数
-bvid = 'BV1ft6hYxE75'  # 视频的 bvid，可选。若 bvid 为空，则必须提供 aid 参数
-cid = '27598718983'  # 视频弹幕的 cid，ignore
 
-# 替换为你自己的 cookie
-cookie = ''
+def main():
+    try:  # 尝试获取记录信息
+        with open(f'{settings.save_dir}/.seen', mode='r', encoding='utf-8') as f:
+            seen: list[str] = f.read().split('\n')[:-1:]  # ignore the last empty string: ''
+    except FileNotFoundError as e:  # 初始化记录信息
+        seen: list[str] = []
+    # aid 不为空
+    if settings.aids:
+        for aid, name in zip(settings.aids, settings.save_name):
+            # 当前 aid 在记录中，跳过爬取
+            if aid in seen:
+                print(f'{aid} 已在当前记录中，将跳过该记录')
+                continue
+            time.sleep(settings.delay)  # 反爬
+            # 从给定的 aid/bvid 与时间段中获取历史弹幕
+            danmaku = get_history_danmaku(aid=aid, page=settings.page, cookies=settings.cookies, start=settings.start, end=settings.end, delay=settings.delay)
+            # 转存为指定格式
+            dump_history_danmaku(danmaku, save_name=name, save_dir=settings.save_dir, file_format=settings.file_format)
+            # 记录当前信息
+            seen.append(aid)
+            with open(f'{settings.save_dir}/.seen', mode='a', encoding='utf-8') as f:
+                f.write(aid + '\n')
+    # bvid 不为空
+    elif settings.bvids:
+        for bvid, name in zip(settings.bvids, settings.save_name):
+            # 当前 bvid 在记录中，跳过爬取
+            if bvid in seen:
+                print(f'{bvid} 已在当前记录中，将跳过该记录')
+                continue
+            time.sleep(settings.delay)  # 反爬
+            # 从给定的 aid/bvid 与时间段中获取历史弹幕
+            danmaku = get_history_danmaku(bvid=bvid, page=settings.page, cookies=settings.cookies, start=settings.start, end=settings.end, delay=settings.delay)
+            # 从给定的 aid/bvid 与时间段中获取历史弹幕
+            # 转存为指定格式
+            dump_history_danmaku(danmaku, save_name=name, save_dir=settings.save_dir, file_format=settings.file_format)
+            # 记录当前信息
+            seen.append(bvid)
+            with open(f'{settings.save_dir}/seen', mode='a', encoding='utf-8') as f:
+                f.write(bvid + '\n')
+    else:
+        raise ValueError('请配置 settings 中视频的 aids/bvids 参数')
+
 
 if __name__ == "__main__":
-    # 从给定的 aid/bvid 与时间段中获取历史弹幕
-    dm = get_history_danmaku(bvid=bvid, cookie=cookie)
-    df = pd.DataFrame(dm)
-    # 弹幕数不为 0
-    if dm:
-        # 将 ctime 时间戳转换为 datetime64[ns]
-        t = pd.to_datetime(df['ctime'].astype(int), unit='s')
-        # 取年月日赋值给 date 字段
-        df['date'] = t.dt.date
-        # 取时分秒赋值给 time 字段
-        df['time'] = t.dt.time
-    # 转存为 csv 文件
-    save_path = './茜特拉莉弹幕.csv'
-    df.to_csv(save_path)
+    main()
