@@ -47,7 +47,7 @@ def dump(df: pd.DataFrame, save_name: str = '', save_dir: str = './Data', file_f
             raise ValueError('请输入有效的 format，可用的 format 为 csv，xlsx 和 json')
 
 
-def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv', callback: callable = add_datetime_field):
+def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv', callback: callable = add_datetime_field) -> None:
     '''
     转存历史弹幕
     ---
