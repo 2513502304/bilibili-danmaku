@@ -7,6 +7,7 @@ Description: 支持任意历史时间筛选的 bilibili 弹幕爬虫
 '''
 
 import settings
+from utils import logger
 from crawl import get_history_danmaku
 from storage import dump_history_danmaku
 import time
@@ -23,7 +24,7 @@ def main():
         for aid, name in zip(settings.aids, settings.save_name):
             # 当前 aid 在记录中，跳过爬取
             if aid in seen:
-                print(f'{aid} 已在当前记录中，将跳过该记录')
+                logger.info(f'{aid} 已在当前记录中，将跳过该记录')
                 continue
             time.sleep(settings.delay)  # 反爬
             # 从给定的 aid/bvid 与时间段中获取历史弹幕
@@ -39,7 +40,7 @@ def main():
         for bvid, name in zip(settings.bvids, settings.save_name):
             # 当前 bvid 在记录中，跳过爬取
             if bvid in seen:
-                print(f'{bvid} 已在当前记录中，将跳过该记录')
+                logger.info(f'{bvid} 已在当前记录中，将跳过该记录')
                 continue
             time.sleep(settings.delay)  # 反爬
             # 从给定的 aid/bvid 与时间段中获取历史弹幕
