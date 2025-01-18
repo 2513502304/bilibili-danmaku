@@ -216,9 +216,9 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
                     # 替换为下一个账号
                     cookie = next(cookies)
                     headers.update({'Cookie': cookie})
-                except StopIteration as e:
+                except StopIteration as e:  # 剩余可用 cookie 为 0
                     raise Exception('所有账号被平台监测，请在次日延长 delay 参数后重新运行')
-                continue
+                continue  # retry again
             break
         logger.info(f'{title}: {d.date()} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
         # 遍历每条弹幕
