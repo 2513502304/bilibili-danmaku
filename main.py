@@ -15,7 +15,7 @@ import time
 
 def main():
     try:  # 尝试获取记录信息
-        with open(f'{settings.save_dir}/.seen', mode='r', encoding='utf-8') as f:
+        with open(f'{settings.save_dir}/{settings.task}.seen', mode='r', encoding='utf-8') as f:
             seen: list[str] = f.read().split('\n')[:-1:]  # ignore the last empty string: ''
     except FileNotFoundError as e:  # 初始化记录信息
         seen: list[str] = []
@@ -33,7 +33,7 @@ def main():
             dump_history_danmaku(danmaku, save_name=name, save_dir=settings.save_dir, file_format=settings.file_format)
             # 记录当前信息
             seen.append(aid)
-            with open(f'{settings.save_dir}/.seen', mode='a', encoding='utf-8') as f:
+            with open(f'{settings.save_dir}/{settings.task}.seen', mode='a', encoding='utf-8') as f:
                 f.write(aid + '\n')
     # bvid 不为空
     elif settings.bvids:
@@ -50,7 +50,7 @@ def main():
             dump_history_danmaku(danmaku, save_name=name, save_dir=settings.save_dir, file_format=settings.file_format)
             # 记录当前信息
             seen.append(bvid)
-            with open(f'{settings.save_dir}/seen', mode='a', encoding='utf-8') as f:
+            with open(f'{settings.save_dir}/{settings.task}.seen', mode='a', encoding='utf-8') as f:
                 f.write(bvid + '\n')
     else:
         raise ValueError('请配置 settings 中视频的 aids/bvids 参数')
