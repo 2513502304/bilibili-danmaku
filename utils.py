@@ -1,3 +1,14 @@
+from typing import TypeAlias
+import logging
+
+# 日志记录
+logging.basicConfig(
+    format='%(asctime)s %(name)s %(levelname)s (%(filename)s %(funcName)s %(lineno)d): %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    level=logging.INFO,
+)
+logger = logging.getLogger('bilibili-danmaku')
+
 # bilibili aid 与 bvid 相互转换
 '''
 2020 年 03 月 18 日 【升级公告】 AV 号全面升级至 BV 号：https://www.bilibili.com/opus/369825052444936486
@@ -6,8 +17,6 @@
 算法说明：
 - https://socialsisteryi.github.io/bilibili-API-collect/docs/misc/bvid_desc.html
 '''
-
-from typing import TypeAlias
 
 aid = '113736958350047'
 bvid = 'BV1ft6hYxE75'
