@@ -16,6 +16,9 @@ cids = [
     '27598718983',
 ]
 
+# 任务名称，用于设置记录信息的文件名
+task = '延迟退休'
+
 # 若视频的 aid/bvid 列表来源自文件中的某一字段，则指定 file 参数中的各个键值对，以批量设置 aids/bvids/save_name 参数
 from_file = True  # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，为 False 时则使用 aids/bvids 参数
 file = {
