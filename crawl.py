@@ -7,7 +7,7 @@ from fake_useragent import UserAgent
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 import time
-from pprint import pprint
+from utils import logger
 from google.protobuf import message, json_format
 import dm_pb2 as danmaku
 import json
@@ -170,7 +170,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         raise ValueError('请输入视频的 aid/bvid')
     # 若视频弹幕数为 0，则返回空 dict
     if stat['danmaku'] == 0:
-        pprint(f'当前视频：{title}弹幕数为 0')
+        logger.info(f'当前视频：{title}弹幕数为 0')
         return {}
     # 开始时间
     start_dt: datetime = datetime.fromtimestamp(int(pubdate)) if start is None else datetime.strptime(start, '%Y-%m-%d')
@@ -211,7 +211,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
                 # 解析文本 proto 字符串
                 danmaku_seg.ParseFromString(response.content)
             except message.DecodeError as e:  # google.protobuf.message.DecodeError: Error parsing message with type 'bilibili.community.service.dm.v1.DmSegMobileReply'
-                print(e)
+                logger.warning(e)
                 try:
                     # 替换为下一个账号
                     cookie = next(cookies)
@@ -220,7 +220,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
                     raise Exception('所有账号被平台监测，请在次日延长 delay 参数后重新运行')
                 continue
             break
-        pprint(f'{title}: {d.date()} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
+        logger.info(f'{title}: {d.date()} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
         # 遍历每条弹幕
         for e in danmaku_seg.elems:
             res_json.append(json_format.MessageToJson(e, ensure_ascii=False))
