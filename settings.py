@@ -3,11 +3,11 @@
 '''
 
 # 茜特拉莉（bushi，原神怎么你了）
-# 视频的 aid 列表，可选。若 aids 为空，则必须提供 bvids 参数
+# 视频的 aid 列表，可选。若 aids 为空，则必须提供 bvids 参数。若设置了 file 参数，则忽略
 aids = [
     '113736958350047',
 ]
-# 视频的 bvid 列表，可选。若 bvids 为空，则必须提供 aids 参数
+# 视频的 bvid 列表，可选。若 bvids 为空，则必须提供 aids 参数。若设置了 file 参数，则忽略
 bvids = [
     'BV1ft6hYxE75',
 ]
@@ -15,6 +15,16 @@ bvids = [
 cids = [
     '27598718983',
 ]
+
+# 若视频的 aid/bvid 列表来源自文件中的某一字段，则指定 file 参数中的各个键值对，以批量设置 aids/bvids/save_name 参数
+from_file = True  # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，为 False 时则使用 aids/bvids 参数
+file = {
+    'file_path': './' + 'bilibili_search_keywords=延迟退休_2024-09-13至2025-01-01_contents.csv',  # 文件路径
+    'field': 'video_id',  # aid/bvid 在文件中的字段名
+    'type': 'aid',  # 用于指定 aid 还是 bvid
+    'prefix': '',  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的前缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
+    'suffix': '-danmaku',  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的后缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
+}
 
 # 替换为你自己的 cookie，若提供多个 cookie，将在当前账号被监测到的时候自动替换为下一个账号
 cookies = [
@@ -44,3 +54,33 @@ save_name = [
 
 # 转存的文件夹，默认为当前目录下的 Data 文件夹中
 save_dir = './Data'
+
+try:
+    from storage import get_aid_form_file, get_bvid_form_file
+    import os
+
+    # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，为 False 时则使用 aids/bvids 参数
+    if from_file:
+        fp = file.get('file_path', '')  # 文件路径
+        f = file.get('field', '')  # aid/bvid 在文件中的字段名
+        tp = file.get('type', '')  # 用于指定 aid 还是 bvid
+        pre = file.get('prefix', '')  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的前缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
+        suf = file.get('suffix', '')  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的后缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
+        # 文件是否存在
+        if os.path.exists(fp):
+            # 类型是否匹配
+            match tp:
+                case 'aid':
+                    aids = get_aid_form_file(file_path=fp, field=f)  # 字段是否正确
+                    save_name = [pre + aid + suf for aid in aids]
+                case 'bvid':
+                    bvids = get_bvid_form_file(file_path=fp, field=f)  # 字段是否正确
+                    save_name = [pre + bvid + suf for bvid in bvids]
+                case _:
+                    raise ValueError('错误的 type 参数')
+        else:
+            raise FileNotFoundError('错误的 file_path 参数')
+    else:
+        pass
+except Exception as e:  # !catch any exception form pandas module
+    print(e)
