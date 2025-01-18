@@ -17,6 +17,7 @@
 - `save_dir`：转存的文件夹，默认为当前目录下的 Data 文件夹中
 
 除此之外，若视频的 `aid`/`bvid` 列表来源自文件中的某一字段，则指定 `file` 参数中的各个键值对，以批量设置 `aids`/`bvids`/`save_name` 参数
+
 可供参考获取视频的 `aid`/`bvid` 的项目：[MediaCrawler](https://github.com/NanmiCoder/MediaCrawler "MediaCrawler")
 
 爬取到的各个字段如下
@@ -36,4 +37,5 @@
 | date      | str       | 弹幕发送日期。年/月/日                                             |
 | time      | str       | 弹幕发送时间。时/分/秒                                             |
 
+爬取到的结果文件如下
 ![image](https://github.com/user-attachments/assets/032d6b97-e5ee-41c3-a6de-05844664be00)
