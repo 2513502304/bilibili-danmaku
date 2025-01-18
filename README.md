@@ -12,13 +12,13 @@
 - `start`：指定时间段开始，YYYY-MM-DD 格式，为 None，表示从视频发布时间开始
 - `end`：指定时间段结束，YYYY-MM-DD 格式，为 None，表示至当前时间结束
 - `delay`：每次请求的延迟时间，建议大于 1s
-- `file_format`：转存的文件格式，默认为 csv，支持 csv，xlsx，json
+- `file_format`：转存的文件格式，支持 csv，xlsx，json
 - `save_name`：转存的文件名称列表，必须与 aids/bvids 中提供的视频个数一致
 - `save_dir`：转存的文件夹，默认为当前目录下的 Data 文件夹中
 
 除此之外，若视频的 `aid`/`bvid` 列表来源自文件中的某一字段，则指定 `file` 参数中的各个键值对，以批量设置 `aids`/`bvids`/`save_name` 参数
 
-可供参考获取视频的 `aid`/`bvid` 的项目：[MediaCrawler](https://github.com/NanmiCoder/MediaCrawler "MediaCrawler")
+可供参考获取视频的 `aid`/`bvid` 列表的项目：[MediaCrawler](https://github.com/NanmiCoder/MediaCrawler "MediaCrawler")
 
 爬取到的各个字段如下
 
