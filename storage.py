@@ -7,6 +7,48 @@ import pandas as pd
 import os
 
 
+def load(file_path: str, field: str) -> pd.Series:
+    '''
+    加载文件中的指定字段，以 pandas.Series 返回
+    ---
+    :param file_path: 完整文件路径，支持 csv，xlsx，json 文件格式
+    :param field: 字段名称
+    :return: 包含指定字段的 pandas.Series 对象
+    '''
+    file_format = file_path.split('.')[-1].lower()
+    match file_format:
+        case 'csv':
+            return pd.read_csv(file_path)[field]
+        case 'xlsx':
+            return pd.read_excel(file_path)[field]
+        case 'json':
+            return pd.read_json(file_path)[field]
+        case _:
+            raise ValueError('不受支持的文件格式，可用的文件格式为 csv，xlsx 和 json')
+
+
+def get_aid_form_file(file_path: str, field: str) -> list[str]:
+    '''
+    加载文件中的 aid 字段，以包含 aid 字符串的列表形式返回
+    ---
+    :param file_path: 完整文件路径，支持 csv，xlsx，json 文件格式
+    :param field: aid 字段名称
+    :return: 包含指定 aid 字符串的列表对象
+    '''
+    return load(file_path=file_path, field=field).astype(str).tolist()
+
+
+def get_bvid_form_file(file_path: str, field: str) -> list[str]:
+    '''
+    加载文件中的 bvid 字段，以包含 bvid 字符串的列表形式返回
+    ---
+    :param file_path: 完整文件路径，支持 csv，xlsx，json 文件格式
+    :param field: bvid 字段名称
+    :return: 包含指定 bvid 字符串的列表对象
+    '''
+    return load(file_path=file_path, field=field).astype(str).tolist()
+
+
 def add_datetime_field(df: pd.DataFrame) -> pd.DataFrame:
     '''
     添加 bilibili 弹幕时间字段
