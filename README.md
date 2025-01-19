@@ -1,7 +1,7 @@
 # ***bilibili-danmaku***
 支持任意历史时间筛选的 `bilibili` 弹幕爬虫
 ---
-支持设置起始时间参数 `start` 与结束时间参数 `end`，爬取 [start, end] 区间段的所有弹幕，每天最多获取 500 条弹幕数!!!
+支持设置起始时间参数 `start` 与结束时间参数 `end`，爬取 [start, end] 区间段的所有弹幕，每天最多获取 500 条弹幕数！！！
 
 配置文件 `settings.py` 中需要设置的参数值
 - `aids`：视频的 aid 列表，可选。若 aids 为空，则必须提供 bvids 参数。若设置了 file 参数，则忽略
