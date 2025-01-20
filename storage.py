@@ -80,11 +80,11 @@ def dump(df: pd.DataFrame, save_name: str = '', save_dir: str = './Data', file_f
     save_path = os.path.join(save_dir, save_name)
     match file_format:
         case 'csv':
-            df.to_csv(save_path + '.csv')
+            df.to_csv(save_path + '.csv').drop_duplicates(ignore_index=True)
         case 'xlsx':
-            df.to_excel(save_path + '.xlsx', engine='xlsxwriter')
+            df.to_excel(save_path + '.xlsx', engine='xlsxwriter').drop_duplicates(ignore_index=True)
         case 'json':
-            df.to_json(save_path + '.json')
+            df.to_json(save_path + '.json').drop_duplicates(ignore_index=True)
         case _:
             raise ValueError('请输入有效的 format，可用的 format 为 csv，xlsx 和 json')
 
