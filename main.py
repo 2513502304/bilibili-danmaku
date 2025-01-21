@@ -2,7 +2,7 @@
 Author: 未来可欺 2513502304@qq.com
 Date: 2025-01-14 02:27:22
 LastEditors: 未来可欺 2513502304@qq.com
-LastEditTime: 2025-01-18 01:48:31
+LastEditTime: 2025-01-21 11:33:35
 Description: 支持任意历史时间筛选的 bilibili 弹幕爬虫
 '''
 
@@ -29,8 +29,10 @@ def main():
             time.sleep(settings.delay)  # 反爬
             # 从给定的 aid/bvid 与时间段中获取历史弹幕
             danmaku = get_history_danmaku(aid=aid, page=settings.page, cookies=settings.cookies, start=settings.start, end=settings.end, delay=settings.delay)
-            # 转存为指定格式
-            dump_history_danmaku(danmaku, save_name=name, save_dir=settings.save_dir, file_format=settings.file_format)
+            # 若弹幕记录不为 0，则将其转存
+            if danmaku:
+                # 转存为指定格式
+                dump_history_danmaku(danmaku, save_name=name, save_dir=settings.save_dir, file_format=settings.file_format)
             # 记录当前信息
             seen.append(aid)
             with open(f'{settings.save_dir}/{settings.task}.seen', mode='a', encoding='utf-8') as f:
@@ -45,9 +47,10 @@ def main():
             time.sleep(settings.delay)  # 反爬
             # 从给定的 aid/bvid 与时间段中获取历史弹幕
             danmaku = get_history_danmaku(bvid=bvid, page=settings.page, cookies=settings.cookies, start=settings.start, end=settings.end, delay=settings.delay)
-            # 从给定的 aid/bvid 与时间段中获取历史弹幕
-            # 转存为指定格式
-            dump_history_danmaku(danmaku, save_name=name, save_dir=settings.save_dir, file_format=settings.file_format)
+            # 若弹幕记录不为 0，则将其转存
+            if danmaku:
+                # 转存为指定格式
+                dump_history_danmaku(danmaku, save_name=name, save_dir=settings.save_dir, file_format=settings.file_format)
             # 记录当前信息
             seen.append(bvid)
             with open(f'{settings.save_dir}/{settings.task}.seen', mode='a', encoding='utf-8') as f:
