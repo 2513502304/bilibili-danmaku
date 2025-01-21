@@ -1,5 +1,4 @@
 fake-useragent==2.0.3
-python-dateutil==2.9.0.post0
 protobuf==5.29.3
 pandas==2.2.3
 numpy==2.2.1
