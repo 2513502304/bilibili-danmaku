@@ -24,6 +24,8 @@ field = {
     'midHash': str,  # 发送者 mid 的 HASH。用于屏蔽用户和查看用户发送的所有弹幕，也可反查用户 id
     'content': str,  # 弹幕内容。utf-8 编码
     'ctime': np.int64,  # 弹幕发送时间。时间戳
+    'weight': np.int32,  # 权重。用于智能屏蔽，根据弹幕语义及长度通过 AI 识别得出范围：[0-10]，值越大权重越高
+    'pool': np.int32,  # 弹幕池。0：普通池 1：字幕池 2：特殊池（代码/BAS弹幕）
     'idStr': str,  # 弹幕 dmid。字串形式。唯一，可用于操作参数
     'attr': np.int32,  # 弹幕属性位。bit0：保护 bit1：直播 bit2：高赞
 }
