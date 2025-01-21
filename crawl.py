@@ -170,38 +170,58 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         raise ValueError('请输入视频的 aid/bvid')
     # 若视频弹幕数为 0，则返回空 dict
     if stat['danmaku'] == 0:
-        logger.info(f'当前视频：{title}弹幕数为 0')
+        logger.info(f'{title}：弹幕数为 0')
         return {}
     # 开始时间
     start_dt: datetime = datetime.fromtimestamp(int(pubdate)) if start is None else datetime.strptime(start, '%Y-%m-%d')
     # 结束时间
     end_dt: datetime = datetime.now() if end is None else datetime.strptime(end, '%Y-%m-%d')
-    # 跳过没有弹幕记录的时间，以防用户输入错误的 start, end 参数导致获取速度变慢（跳过的最小时间单位步长为月）
-    if start is not None:
+    # 跳过没有弹幕记录的时间直至记录的开始，以确定弹幕记录时间的左边界
+    # 同时也是以防用户输入错误的 start 参数导致获取速度变慢（跳过的最小时间单位步长为月）
+    start_Ym = start_dt.strftime(format='%Y-%m')
+    start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
+    while start_index['data'] is None:  # 直到获取有记录的月份
+        logger.info(f'{title}：{start_Ym} 无弹幕记录，将跳过该月')
+        time.sleep(delay)  # 反爬
+        start_dt += relativedelta(months=1)
         start_Ym = start_dt.strftime(format='%Y-%m')
         start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
-        while start_index['data'] is None:  # 直到获取有记录的月份
-            time.sleep(delay)  # 反爬
-            start_dt += relativedelta(months=1)
-            start_Ym = start_dt.strftime(format='%Y-%m')
-            start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
-    # 跳过没有弹幕记录的时间，以防用户输入错误的 start, end 参数导致获取速度变慢（跳过的最小时间单位步长为月）
-    if end is not None:
+    # 跳过没有弹幕记录的时间直至记录的结束，以确定弹幕记录时间的右边界
+    # 同时也是以防用户输入错误的 end 参数导致获取速度变慢（跳过的最小时间单位步长为月）
+    end_Ym = end_dt.strftime(format='%Y-%m')
+    end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
+    while end_index['data'] is None:  # 直到获取有记录的月份
+        logger.info(f'{title}：{end_Ym} 无弹幕记录，将跳过该月')
+        time.sleep(delay)  # 反爬
+        end_dt += relativedelta(months=-1)
         end_Ym = end_dt.strftime(format='%Y-%m')
         end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
-        while end_index['data'] is None:  # 直到获取有记录的月份
-            time.sleep(delay)  # 反爬
-            end_dt += relativedelta(months=-1)
-            end_Ym = end_dt.strftime(format='%Y-%m')
-            end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
+    # 获取含有的弹幕记录的时间
+    record_data = []
+    for m in pd.date_range(start=start_Ym, end=end_Ym, freq='MS'):
+        time.sleep(delay)  # 反爬
+        Ym = m.strftime(format='%Y-%m')
+        index = get_history_danmaku_index(cid=cid, cookie=cookie, month=Ym)
+        # 忽略 start_dt 至 end_dt 中间没有弹幕的月份
+        index_data = index['data']
+        if index_data is not None:
+            logger.info(f'{title}：{Ym} 含有弹幕记录日期为：{index_data}')
+            record_data.extend(index_data)
+        else:
+            logger.info(f'{title}：{Ym} 无弹幕记录，将跳过该月')
     # 将所有弹幕汇总为一个 json 对象，方便处理
     res_json = []
     # 初始化 protobuf 中定义的数据结构
     danmaku_seg = danmaku.DmSegMobileReply()
     # 遍历每个时间段
     for d in pd.date_range(start=start_dt, end=end_dt, freq='D'):
+        # 跳过不在弹幕记录的时间
+        now_date = str(d.date())
+        if now_date not in record_data:
+            logger.info(f'{title}：{now_date} 无弹幕记录，将跳过该天')
+            continue
         params.update({
-            'date': str(d.date()),  # 弹幕日期，YYYY-MM-DD
+            'date': str(now_date),  # 弹幕日期，YYYY-MM-DD
         })
         # 直到获取到正确的数据后退出
         while True:
@@ -220,7 +240,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
                     raise Exception('所有账号被平台监测，请在次日延长 delay 参数后重新运行')
                 continue  # retry again
             break
-        logger.info(f'{title}: {d.date()} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
+        logger.info(f'{title}：{now_date} 获取到的弹幕条数：{len(danmaku_seg.elems)}')
         # 遍历每条弹幕
         for e in danmaku_seg.elems:
             res_json.append(json_format.MessageToJson(e, ensure_ascii=False))
