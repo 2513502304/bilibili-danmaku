@@ -218,7 +218,6 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         # 跳过不在弹幕记录的时间
         now_date = str(d.date())
         if now_date not in record_data:
-            logger.info(f'{title}：{now_date} 无弹幕记录，将跳过该天')
             continue
         params.update({
             'date': str(now_date),  # 弹幕日期，YYYY-MM-DD
