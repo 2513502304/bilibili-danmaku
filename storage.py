@@ -64,6 +64,14 @@ def add_datetime_field(df: pd.DataFrame) -> pd.DataFrame:
     df['time'] = t.dt.time
     return df
 
+def drop_duplicates(df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    去重 bilibili 弹幕字段
+    ---
+    :param df: pandas.DataFrame
+    :return: pandas.DataFrame
+    '''
+    return df.drop_duplicates(ignore_index=True)
 
 def dump(df: pd.DataFrame, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv') -> None:
     '''
@@ -80,16 +88,18 @@ def dump(df: pd.DataFrame, save_name: str = '', save_dir: str = './Data', file_f
     save_path = os.path.join(save_dir, save_name)
     match file_format:
         case 'csv':
-            df.to_csv(save_path + '.csv').drop_duplicates(ignore_index=True)
+            df.to_csv(save_path + '.csv')
         case 'xlsx':
-            df.to_excel(save_path + '.xlsx', engine='xlsxwriter').drop_duplicates(ignore_index=True)
+            df.to_excel(save_path + '.xlsx', engine='xlsxwriter')
         case 'json':
-            df.to_json(save_path + '.json').drop_duplicates(ignore_index=True)
+            df.to_json(save_path + '.json')
         case _:
             raise ValueError('请输入有效的 format，可用的 format 为 csv，xlsx 和 json')
 
 
-def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv', callback: callable = add_datetime_field) -> None:
+PRETREATMENT:list[callable] = [add_datetime_field, drop_duplicates]
+
+def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv', callbacks: list[callable] = PRETREATMENT) -> None:
     '''
     转存历史弹幕
     ---
@@ -97,12 +107,13 @@ def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data
     :param save_name: 转存的文件名称，默认为空字符串 ''
     :param save_dir: 转存的文件夹，可选。默认为当前目录下的 Data 文件夹中
     :param file_format: 转存的文件格式，可选。默认为 csv，支持 csv，xlsx，json
-    :param callback: 回调函数，接受一个类型为 pandas.DataFrame 的参数，用于执行转存数据前的预处理操作，并返回 pandas.DataFrame。默认为 add_datetime_field
+    :param callbacks: 回调函数列表，列表元素接受一个类型为 pandas.DataFrame 的参数，用于执行转存数据前的预处理操作，并返回 pandas.DataFrame。默认为 PRETREATMENT
     :return: None
     '''
     df = pd.DataFrame(data)
     if not df.empty:
-        if callback is not None:
-            df = callback(df)
+        if callbacks:
+            for callback in callbacks:
+                df = callback(df)
     # 转存为指定格式
     return dump(df, save_name=save_name, save_dir=save_dir, file_format=file_format)
