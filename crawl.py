@@ -4,8 +4,7 @@ bilibili 历史弹幕: https://socialsisteryi.github.io/bilibili-API-collect/doc
 '''
 
 from fake_useragent import UserAgent
-from dateutil.relativedelta import relativedelta
-from datetime import datetime
+from datetime import datetime, date, time as _time, timedelta
 import time
 from utils import logger
 from google.protobuf import message, json_format
@@ -173,9 +172,11 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         logger.info(f'{title}：弹幕数为 0')
         return {}
     # 开始时间
-    start_dt: datetime = datetime.fromtimestamp(int(pubdate)) if start is None else datetime.strptime(start, '%Y-%m-%d')
+    start_dt: date = datetime.fromtimestamp(int(pubdate)).date() if start is None else datetime.strptime(start, '%Y-%m-%d').date()
     # 结束时间
-    end_dt: datetime = datetime.now() if end is None else datetime.strptime(end, '%Y-%m-%d')
+    end_dt: date = datetime.now().date() if end is None else datetime.strptime(end, '%Y-%m-%d').date()
+    if start_dt > end_dt:
+        raise ValueError('请输入有效的 start 和 end：start 不能超过 end')
     # 跳过没有弹幕记录的时间直至记录的开始，以确定弹幕记录时间的左边界
     # 同时也是以防用户输入错误的 start 参数导致获取速度变慢（跳过的最小时间单位步长为月）
     start_Ym = start_dt.strftime(format='%Y-%m')
@@ -183,7 +184,9 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
     while start_index['data'] is None:  # 直到获取有记录的月份
         logger.info(f'{title}：{start_Ym} 无弹幕记录，将跳过该月')
         time.sleep(delay)  # 反爬
-        start_dt += relativedelta(months=1)
+        start_dt += pd.DateOffset(months=1)  # 跳转到下一个月
+        start_dt = pd.offsets.MonthBegin().rollback(
+            start_dt)  # 下一个月的月初，保证 start_dt <= end_dt，以防在相对月份加减后，导致 start_dt.year == end_dt.year, start_dt.month == end_dt.month, start_dt.day > end_dt.day
         start_Ym = start_dt.strftime(format='%Y-%m')
         start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
     # 跳过没有弹幕记录的时间直至记录的结束，以确定弹幕记录时间的右边界
@@ -193,7 +196,9 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
     while end_index['data'] is None:  # 直到获取有记录的月份
         logger.info(f'{title}：{end_Ym} 无弹幕记录，将跳过该月')
         time.sleep(delay)  # 反爬
-        end_dt += relativedelta(months=-1)
+        end_dt += pd.DateOffset(months=-1)  # 跳转到上一个月
+        end_dt = pd.offsets.MonthEnd().rollforward(
+            end_dt)  # 上一个月的月末，保证 start_dt <= end_dt，以防在相对月份加减后，导致 start_dt.year == end_dt.year, start_dt.month == end_dt.month, start_dt.day > end_dt.day
         end_Ym = end_dt.strftime(format='%Y-%m')
         end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
     # 获取含有的弹幕记录的时间
