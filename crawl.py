@@ -186,7 +186,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         time.sleep(delay)  # 反爬
         start_dt += pd.DateOffset(months=1)  # 跳转到下一个月
         start_dt = pd.offsets.MonthBegin().rollback(
-            start_dt)  # 下一个月的月初，保证 start_dt <= end_dt，以防在相对月份加减后，导致 start_dt.year == end_dt.year, start_dt.month == end_dt.month, start_dt.day > end_dt.day
+            start_dt)  # 仅偏移到下一个月的月初而不是下一个月的当前日期，保证 start_dt 始终小于等于 end_dt，以防在相对月份加减后，导致 start_dt.year == end_dt.year, start_dt.month == end_dt.month, start_dt.day > end_dt.day
         start_Ym = start_dt.strftime(format='%Y-%m')
         start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
     # 跳过没有弹幕记录的时间直至记录的结束，以确定弹幕记录时间的右边界
@@ -198,7 +198,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         time.sleep(delay)  # 反爬
         end_dt += pd.DateOffset(months=-1)  # 跳转到上一个月
         end_dt = pd.offsets.MonthEnd().rollforward(
-            end_dt)  # 上一个月的月末，保证 start_dt <= end_dt，以防在相对月份加减后，导致 start_dt.year == end_dt.year, start_dt.month == end_dt.month, start_dt.day > end_dt.day
+            end_dt)  # 仅偏移到上一个月的月末而不是上一个月的当前日期，保证 start_dt 始终小于等于 end_dt，以防在相对月份加减后，导致 start_dt.year == end_dt.year, start_dt.month == end_dt.month, start_dt.day > end_dt.day
         end_Ym = end_dt.strftime(format='%Y-%m')
         end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
     # 获取含有的弹幕记录的时间
