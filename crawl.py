@@ -117,56 +117,63 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
     }
     if aid is not None or bvid is not None:
         context = get_video_information(aid=aid, bvid=bvid, cookie=cookie)  # 获取视频信息
-        # 解析获取到的数据
-        data = context['data']
-        aid = data['aid']  # 稿件 avid
-        argue_info = data['aid']  # 争议/警告信息
-        bvid = data['bvid']  # 稿件 bvid
-        cid = data['cid']  # 视频 1P cid
-        copyright = data['copyright']  # 视频类型。1：原创 2：转载
-        ctime = data['ctime']  # 用户投稿时间。秒级时间戳
-        desc = data['desc']  # 视频简介
-        desc_v2 = data['desc_v2']  # 新版视频简介
-        dimension = data['dimension']  # 视频 1P 分辨率
-        disable_show_up_info = data['disable_show_up_info']  # TODO
-        duration = data['duration']  # 稿件总时长（所有分 P）。单位为秒
-        dynamic = data['dynamic']  # 视频同步发布的动态的文字内容
-        enable_vt = data['enable_vt']  # TODO
-        honor_reply = data['honor_reply']  # TODO
-        is_chargeable_season = data['is_chargeable_season']  # TODO
-        is_season_display = data['is_season_display']  # TODO
-        is_story = data['is_story']  # TODO
-        is_story_play = data['is_story_play']  # TODO
-        is_upower_exclusive = data['is_upower_exclusive']  # TODO
-        is_upower_play = data['is_upower_play']  # TODO
-        is_upower_preview = data['is_upower_preview']  # TODO
-        is_view_self = data['is_view_self']  # TODO
-        like_icon = data['like_icon']  # TODO
-        need_jump_bv = data['need_jump_bv']  # TODO
-        no_cache = data['no_cache']  # TODO
-        owner = data['owner']  # 视频 UP 主信息
-        pages = data['pages']  # 视频分 P 列表
-        pic = data['pic']  # 稿件封面图片 url
-        premiere = data['premiere']  # TODO
-        pubdate = data['pubdate']  # 稿件发布时间。秒级时间戳
-        rights = data['rights']  # 视频属性标志
-        stat = data['stat']  # 视频状态数
-        state = data['state']  # 视频状态
-        subtitle = data['subtitle']  # 视频 CC 字幕信息
-        teenage_mode = data['teenage_mode']  # TODO
-        tid = data['tid']  # 分区 tid
-        tid_v2 = data['tid_v2']  # 新版分区 tid
-        title = data['title']  # 稿件标题
-        tname = data['tname']  # 子分区名称
-        tname_v2 = data['tname_v2']  # 新版子分区名称
-        user_garb = data['user_garb']  # 用户装扮信息
-        videos = data['videos']  # 稿件分 P 总数。默认为1
-        vt_display = data['vt_display']  # TODO
-        if page == 1:
-            params.update({'oid': cid})
-        else:
-            cid = data['pages'][page - 1]['cid']
-            params.update({'oid': cid})
+        if context['code'] == 0:  # response right
+            # 解析获取到的数据
+            data = context['data']
+            aid = data['aid']  # 稿件 avid
+            argue_info = data['aid']  # 争议/警告信息
+            bvid = data['bvid']  # 稿件 bvid
+            cid = data['cid']  # 视频 1P cid
+            copyright = data['copyright']  # 视频类型。1：原创 2：转载
+            ctime = data['ctime']  # 用户投稿时间。秒级时间戳
+            desc = data['desc']  # 视频简介
+            desc_v2 = data['desc_v2']  # 新版视频简介
+            dimension = data['dimension']  # 视频 1P 分辨率
+            disable_show_up_info = data['disable_show_up_info']  # TODO
+            duration = data['duration']  # 稿件总时长（所有分 P）。单位为秒
+            dynamic = data['dynamic']  # 视频同步发布的动态的文字内容
+            enable_vt = data['enable_vt']  # TODO
+            honor_reply = data['honor_reply']  # TODO
+            is_chargeable_season = data['is_chargeable_season']  # TODO
+            is_season_display = data['is_season_display']  # TODO
+            is_story = data['is_story']  # TODO
+            is_story_play = data['is_story_play']  # TODO
+            is_upower_exclusive = data['is_upower_exclusive']  # TODO
+            is_upower_play = data['is_upower_play']  # TODO
+            is_upower_preview = data['is_upower_preview']  # TODO
+            is_view_self = data['is_view_self']  # TODO
+            like_icon = data['like_icon']  # TODO
+            need_jump_bv = data['need_jump_bv']  # TODO
+            no_cache = data['no_cache']  # TODO
+            owner = data['owner']  # 视频 UP 主信息
+            pages = data['pages']  # 视频分 P 列表
+            pic = data['pic']  # 稿件封面图片 url
+            premiere = data['premiere']  # TODO
+            pubdate = data['pubdate']  # 稿件发布时间。秒级时间戳
+            rights = data['rights']  # 视频属性标志
+            stat = data['stat']  # 视频状态数
+            state = data['state']  # 视频状态
+            subtitle = data['subtitle']  # 视频 CC 字幕信息
+            teenage_mode = data['teenage_mode']  # TODO
+            tid = data['tid']  # 分区 tid
+            tid_v2 = data['tid_v2']  # 新版分区 tid
+            title = data['title']  # 稿件标题
+            tname = data['tname']  # 子分区名称
+            tname_v2 = data['tname_v2']  # 新版子分区名称
+            user_garb = data['user_garb']  # 用户装扮信息
+            videos = data['videos']  # 稿件分 P 总数。默认为1
+            vt_display = data['vt_display']  # TODO
+            if page == 1:
+                params.update({'oid': cid})
+            else:
+                cid = data['pages'][page - 1]['cid']
+                params.update({'oid': cid})
+        else:  # response error
+            if aid is not None:
+                logger.error(f'{aid = } {context["message"]}')
+            elif bvid is not None:
+                logger.error(f'{bvid = } {context["message"]}')
+            return {}
     else:
         raise ValueError('请输入视频的 aid/bvid')
     # 若视频弹幕数为 0，则返回空 dict
