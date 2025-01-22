@@ -1,11 +1,21 @@
 from typing import TypeAlias
 import logging
 
+# 启用调试于 http.client 级别 (requests->urllib3->http.client)
+# 你将能看到 REQUEST，包括 HEADERS 和 DATA，以及包含 HEADERS 但不包含 DATA 的 RESPONSE
+# 唯一缺少的是 response.body，它不会被 log 记录
+try:  # for Python 3
+    from http.client import HTTPConnection
+except ImportError:
+    from httplib import HTTPConnection
+
+HTTPConnection.debuglevel = 0  # 大于 0 开启调试，日志冗余信息过多，不建议开启
+
 # 日志记录
 logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s (%(filename)s %(funcName)s %(lineno)d): %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
-    level=logging.INFO,
+    level=logging.DEBUG,
 )
 logger = logging.getLogger('bilibili-danmaku')
 
