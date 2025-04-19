@@ -58,7 +58,7 @@ def av2bv(aid: str) -> str:
     :return: 转换后的 bvid
     '''
     if aid[:2] == 'av':
-        bvid = list(bvid[2:])
+        aid = list(aid[2:])
     bvid = [''] * 9
     temp = (max_aid | int(aid)) ^ XOR
     for i in range(len(encode_map)):
