@@ -87,7 +87,7 @@ def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
         duplicates = pre_midHash[pre_midHash == midHash]
         # 如果有重复行，则使用先前行中重复出现的数据作为当前行的内容
         if not duplicates.empty:
-            df.loc[index, :].fillna(df.loc[duplicates.index[0], :])
+            df.loc[index, :] = df.loc[index, :].fillna(df.loc[duplicates.index[0], :])
             logger.info(f'第 {index} 行，{midHash = } 在第 {duplicates.index[0]} 行中重复出现，将使用第 {duplicates.index[0]} 行的数据填充第 {index} 行中缺失值')
             continue
         # 如果没有重复行
