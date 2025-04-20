@@ -31,6 +31,30 @@ field = {
 }
 
 
+def get_user_information(mid: str, photo: bool = True) -> dict:
+    """
+    从给定的 mid 中获取用户名片信息
+
+    Args:
+        mid (str): 目标用户 mid
+        photo (bool, optional): 是否请求用户主页头图. Defaults to True.
+
+    Returns:
+        dict: 用户名片信息
+    """
+    url = 'https://api.bilibili.com/x/web-interface/card'  # 用户名片信息（无需 Cookie）
+    headers = {
+        'User-Agent': UserAgent().random,
+    }
+    params = {
+        'mid': mid,  # 目标用户 mid
+        'photo': photo,  # 是否请求用户主页头图
+    }
+    response = requests.get(url=url, headers=headers, params=params)
+    user_info = response.json()
+    return user_info
+
+
 def get_video_information(aid: str = None, bvid: str = None, cookie: str = None) -> dict:
     '''
     从给定的 aid 或 bvid 中获取视频信息
@@ -168,7 +192,7 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
             else:
                 cid = data['pages'][page - 1]['cid']
                 params.update({'oid': cid})
-        else:  # response error
+        else:  # response error（除了当前账号被检测以外，还有可能是视频不存在的情况）
             if aid is not None:
                 logger.error(f'{aid = } {context["message"]}')
             elif bvid is not None:
