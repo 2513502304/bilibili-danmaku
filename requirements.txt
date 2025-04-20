@@ -1,5 +1,6 @@
 fake-useragent==2.0.3
 protobuf==5.29.3
+rich==13.7.0
 pandas==2.2.3
 numpy==2.2.1
 requests==2.32.3
