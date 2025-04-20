@@ -2,7 +2,10 @@
 转存文件
 '''
 
-from typing import Any
+from crawl import get_user_information
+from utils import logger, crack
+from typing import Any, Callable
+from rich.progress import track
 import pandas as pd
 import os
 
@@ -64,6 +67,94 @@ def add_datetime_field(df: pd.DataFrame) -> pd.DataFrame:
     df['time'] = t.dt.time
     return df
 
+def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    添加 bilibili 弹幕用户信息字段
+
+    Args:
+        df (pd.DataFrame): pandas.DataFrame
+
+    Returns:
+        pd.DataFrame: pandas.DataFrame
+    """
+    # 反匿名化 midHash，获取 uid 列表，并添加对应 uid 信息字段
+    for index, row in track(df.iterrows(), description='反匿名化中...', total=len(df)):
+        # 当前行出现的 midHash 值
+        midHash = row['midHash']
+        # 先前行出现的 midHash 值
+        pre_midHash = df.iloc[:index]['midHash']
+        # 判断先前行中是否出现重复数据
+        duplicates = pre_midHash[pre_midHash == midHash]
+        # 如果有重复行，则使用先前行中重复出现的数据作为当前行的内容
+        if not duplicates.empty:
+            df.loc[index, :].fillna(df.loc[duplicates.index[0], :])
+            logger.info(f'第 {index} 行，{midHash = } 在第 {duplicates.index[0]} 行中重复出现，将使用第 {duplicates.index[0]} 行的数据填充第 {index} 行中缺失值')
+            continue
+        # 如果没有重复行
+        # 获取 uid
+        uid = crack(midHash)
+        # 添加 uid 字段
+        df.loc[index, 'uid'] = uid
+        # 获取用户名片信息
+        user_info = get_user_information(mid=uid, photo=True)
+            
+        # 解析获取到的数据
+        if user_info['code'] == 0:  # response right
+            data = user_info['data']  # 信息本体
+            archive_count = data['archive_count']  # 用户稿件数
+            article_count = data['article_count']  # 0
+            card = data['card']  # 卡片信息
+            followers = data['follower']  # 粉丝数
+            following = data['following']  # 是否关注此用户（true：已关注；false：未关注，需要登录（Cookie）未登录为 false）
+            likes = data['like_num']  # 点赞数
+            space = data['space']  # 主页头图
+
+            DisplayRank = card['DisplayRank']  # 0
+            Official = card['Official']  # 认证信息
+            approve = card['approve']  # false
+            article = card['article']  # 0
+            attentions = card['attentions']  # 空
+            birthday = card['birthday']  # 空
+            description = card['description']  # 空
+            face = card['face']  # 用户头像链接
+            face_nft = card['face_nft']  # 是否为 NFT 头像（0：不是 NFT 头像；1：是 NFT 头像）
+            face_nft_type = card['face_nft_type']  # NFT 头像类型
+            fans = card['fans']  # 粉丝数
+            friend = card['friend']  # 关注数
+            is_senior_member = card['is_senior_member']  # 是否为硬核会员（0：否；1：是）
+            level_info = card['level_info']  # 等级
+            mid = card['mid']  # 用户 mid
+            name = card['name']  # 用户昵称
+            name_render = card['name_render']  # 用户昵称渲染（有效时：obj；无效时：null）
+            nameplate = card['nameplate']  # 勋章信息（有效时：obj；无效时：null）
+            official_verify = card['official_verify']  # 认证信息2
+            pendant = card['pendant']  # 挂件
+            place = card['place']  # 空
+            rank = card['rank']  # 用户权限等级（目前应该无任何作用：5000：0 级未答题；10000：普通会员；20000：字幕君；25000：VIP；30000：真·职人；32000：管理员）
+            regtime = card['regtime']  # 0
+            sex = card['sex']  # 用户性别
+            sign = card['sign']  # 用户签名
+            spacesta = card['spacesta']  # 用户状态（0：正常；-2：被封禁）
+            vip = card['vip']  # 大会员状态
+            
+            # 添加对应字段
+            df.loc[index,'user_space_link'] = 'https://space.bilibili.com/' + uid  # 用户空间链接
+            df.loc[index, 'name'] = name  # 用户昵称
+            df.loc[index, 'sex'] = sex  # 用户性别
+            df.loc[index, 'archive_count'] = archive_count  # 用户稿件数
+            df.loc[index, 'fans'] = fans  # 粉丝数
+            df.loc[index, 'friend'] = friend  # 关注数
+            df.loc[index, 'likes'] = likes  # 点赞数
+            df.loc[index, 'face'] = face  # 用户头像链接
+            df.loc[index, 'is_senior_member'] = '否' if str(is_senior_member) == '0' else '是' # 是否为硬核会员（0：否；1：是）
+            df.loc[index, 'level'] = level_info['current_level']  # 用户等级
+            df.loc[index, 'sign'] = sign  # 用户签名    
+            df.loc[index, 'spacesta'] = '正常' if str(spacesta) == '0' else '被封禁'  # 用户状态（0：正常；-2：被封禁）
+            # TODO
+        else:  # response error（除了当前账号被检测以外，还有可能是视频不存在的情况）
+            logger.error(f'第 {index} 行，{midHash = }; {uid = }: {user_info["message"]}')
+    return df
+
 def drop_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     '''
     去重 bilibili 弹幕字段
@@ -97,9 +188,9 @@ def dump(df: pd.DataFrame, save_name: str = '', save_dir: str = './Data', file_f
             raise ValueError('请输入有效的 format，可用的 format 为 csv，xlsx 和 json')
 
 
-PRETREATMENT:list[callable] = [add_datetime_field, drop_duplicates]
+PRETREATMENT: list[Callable] = [add_datetime_field, drop_duplicates]
 
-def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv', callbacks: list[callable] = PRETREATMENT) -> None:
+def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv', callbacks: list[Callable] = PRETREATMENT) -> None:
     '''
     转存历史弹幕
     ---
