@@ -92,6 +92,7 @@ def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
             logger.info(f'第 {index} 行，{midHash = } 在第 {duplicates.index[0]} 行中重复出现，将使用第 {duplicates.index[0]} 行的数据填充第 {index} 行中缺失值')
             time.sleep(0.5)  # 反爬
             continue
+        
         # 如果没有重复行，则使用当前行的 midHash 值进行反匿名化
         # 获取 uid
         uid = crack(midHash)    #!耗时操作，替代了反爬所需的时间
