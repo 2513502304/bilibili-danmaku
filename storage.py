@@ -6,6 +6,7 @@ from crawl import get_user_information
 from utils import logger, crack
 from typing import Any, Callable
 from rich.progress import track
+import time
 import pandas as pd
 import os
 
@@ -89,10 +90,11 @@ def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
         if not duplicates.empty:
             df.loc[index, :] = df.loc[index, :].fillna(df.loc[duplicates.index[0], :])
             logger.info(f'第 {index} 行，{midHash = } 在第 {duplicates.index[0]} 行中重复出现，将使用第 {duplicates.index[0]} 行的数据填充第 {index} 行中缺失值')
+            time.sleep(0.5)  # 反爬
             continue
-        # 如果没有重复行
+        # 如果没有重复行，则使用当前行的 midHash 值进行反匿名化
         # 获取 uid
-        uid = crack(midHash)
+        uid = crack(midHash)    #!耗时操作，替代了反爬所需的时间
         # 添加 uid 字段
         df.loc[index, 'uid'] = uid
         # 获取用户名片信息
@@ -151,7 +153,7 @@ def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
             df.loc[index, 'sign'] = sign  # 用户签名    
             df.loc[index, 'spacesta'] = '正常' if str(spacesta) == '0' else '被封禁'  # 用户状态（0：正常；-2：被封禁）
             # TODO
-        else:  # response error（除了当前账号被检测以外，还有可能是视频不存在的情况）
+        else:  # response error（除了当前账号被检测以外，还有可能是账号不存在的情况）
             logger.error(f'第 {index} 行，{midHash = }; {uid = }: {user_info["message"]}')
     return df
 
