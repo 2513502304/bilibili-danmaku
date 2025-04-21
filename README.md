@@ -39,7 +39,8 @@
 | time     | str       | 弹幕发送时间。时/分/秒                                                                                                  |
 
 爬取到的结果文件如下
-![image](https://github.com/user-attachments/assets/032d6b97-e5ee-41c3-a6de-05844664be00)
+![image](https://github.com/user-attachments/assets/b8ab1354-52c8-414a-9fb2-c19fa484e235)
+
 
 若 `user_info` 为 True，则爬取到的各个字段如下
 | 字段名           | 数据类型  | 说明                                                                                                                    |
@@ -70,3 +71,5 @@
 | sign             | str       | 用户签名                                                                                                                |
 | spacesta         | str       | 用户状态。0：正常；-2：被封禁                                                                                           |
 
+爬取到的结果文件如下
+![image](https://github.com/user-attachments/assets/0f10d3bc-99a3-4075-9ec5-4c6e154974f7)
