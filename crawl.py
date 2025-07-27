@@ -3,16 +3,18 @@ bilibili 视频基本信息: https://socialsisteryi.github.io/bilibili-API-colle
 bilibili 历史弹幕: https://socialsisteryi.github.io/bilibili-API-collect/docs/danmaku/history.html
 '''
 
-from fake_useragent import UserAgent
-from datetime import datetime, date, time as _time, timedelta
 import time
-from utils import logger
-from google.protobuf import message, json_format
-import dm_pb2 as danmaku
-import json
-import pandas as pd
+from datetime import datetime
+
 import numpy as np
+import orjson
+import pandas as pd
 import requests
+from fake_useragent import UserAgent
+from google.protobuf import json_format, message
+
+import dm_pb2 as danmaku
+from utils import logger
 
 # 弹幕字段
 field = {
@@ -55,7 +57,7 @@ def get_user_information(mid: str, photo: bool = True) -> dict:
     return user_info
 
 
-def get_video_information(aid: str = None, bvid: str = None, cookie: str = None) -> dict:
+def get_video_information(aid: str | None = None, bvid: str | None = None, cookie: str | None = None) -> dict:
     '''
     从给定的 aid 或 bvid 中获取视频信息
     ---
@@ -83,23 +85,17 @@ def get_video_information(aid: str = None, bvid: str = None, cookie: str = None)
     return context
 
 
-def get_history_danmaku_index(cid: str = None, cookie: str = None, month: str = None) -> dict:
+def get_history_danmaku_index(cid: str, cookie: str, month: str) -> dict:
     '''
     从给定的 cid 与 month 中获取历史弹幕日期
     ---
     
     :param cid: 必要的弹幕 cid
-    :param month: 必要的查询目标年月，YYYY-MM
     :param cookie: 必要的 cookie
+    :param month: 必要的查询目标年月，YYYY-MM
     :return: 历史弹幕日期，以 json 格式返回
     '''
     url = 'https://api.bilibili.com/x/v2/dm/history/index'  # 查询历史弹幕日期 url
-    if cid is None:
-        raise ValueError('请输入弹幕的 cid')
-    if cookie is None:
-        raise ValueError('请输入有效的 Cookie')
-    if month is None:
-        raise ValueError('请输入有效的 month')
     headers = {
         'User-Agent': UserAgent().random,
         'Cookie': cookie,
@@ -114,7 +110,13 @@ def get_history_danmaku_index(cid: str = None, cookie: str = None, month: str = 
     return context
 
 
-def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookies: list[str] = None, start: str = None, end: str = None, delay: float = 1.0) -> dict:
+def get_history_danmaku(aid: str | None = None,
+                        bvid: str | None = None,
+                        page: int = 1,
+                        cookies: list[str] | None = None,
+                        start: str | None = None,
+                        end: str | None = None,
+                        delay: float = 1.0) -> dict:
     '''
     从给定的 aid/bvid 与时间段中获取历史弹幕
     ---
@@ -205,9 +207,9 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         logger.info(f'{title}：弹幕数为 0')
         return {}
     # 开始时间
-    start_dt: date = datetime.fromtimestamp(int(pubdate)).date() if start is None else datetime.strptime(start, '%Y-%m-%d').date()
+    start_dt: datetime = datetime.fromtimestamp(int(pubdate)) if start is None else datetime.strptime(start, '%Y-%m-%d')
     # 结束时间
-    end_dt: date = datetime.now().date() if end is None else datetime.strptime(end, '%Y-%m-%d').date()
+    end_dt: datetime = datetime.now() if end is None else datetime.strptime(end, '%Y-%m-%d')
     if start_dt > end_dt:
         raise ValueError('请输入有效的 start 和 end：start 不能超过 end')
     # 跳过没有弹幕记录的时间直至记录的开始，以确定弹幕记录时间的左边界
@@ -215,8 +217,8 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
     start_Ym = start_dt.strftime(format='%Y-%m')
     start_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=start_Ym)
     while start_index['data'] is None:  # 直到获取有记录的月份
-        logger.info(f'{title}：{start_Ym} 无弹幕记录，将跳过该月')
         time.sleep(delay)  # 反爬
+        logger.info(f'{title}：{start_Ym} 无弹幕记录，将跳过该月')
         start_dt += pd.DateOffset(months=1)  # 跳转到下一个月
         start_dt = pd.offsets.MonthBegin().rollback(
             start_dt)  # 仅偏移到下一个月的月初而不是下一个月的当前日期，保证 start_dt 始终小于等于 end_dt，以防在相对月份加减后，导致 start_dt.year == end_dt.year, start_dt.month == end_dt.month, start_dt.day > end_dt.day
@@ -227,8 +229,8 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
     end_Ym = end_dt.strftime(format='%Y-%m')
     end_index = get_history_danmaku_index(cid=cid, cookie=cookie, month=end_Ym)
     while end_index['data'] is None:  # 直到获取有记录的月份
-        logger.info(f'{title}：{end_Ym} 无弹幕记录，将跳过该月')
         time.sleep(delay)  # 反爬
+        logger.info(f'{title}：{end_Ym} 无弹幕记录，将跳过该月')
         end_dt += pd.DateOffset(months=-1)  # 跳转到上一个月
         end_dt = pd.offsets.MonthEnd().rollforward(
             end_dt)  # 仅偏移到上一个月的月末而不是上一个月的当前日期，保证 start_dt 始终小于等于 end_dt，以防在相对月份加减后，导致 start_dt.year == end_dt.year, start_dt.month == end_dt.month, start_dt.day > end_dt.day
@@ -282,5 +284,5 @@ def get_history_danmaku(aid: str = None, bvid: str = None, page: int = 1, cookie
         for e in danmaku_seg.elems:
             res_json.append(json_format.MessageToJson(e, ensure_ascii=False))
     # 将 json 对象转存为 Python 对象
-    dm = json.loads('[' + ','.join(res_json) + ']')
+    dm = orjson.loads('[' + ','.join(res_json) + ']')
     return dm

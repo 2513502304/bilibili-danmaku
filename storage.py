@@ -2,13 +2,15 @@
 转存文件
 '''
 
-from crawl import get_user_information
-from utils import logger, crack
-from typing import Any, Callable
-from rich.progress import track
-import time
-import pandas as pd
 import os
+import time
+from typing import Any, Callable
+
+import pandas as pd
+from rich.progress import track
+
+from crawl import get_user_information
+from utils import crack, logger
 
 
 def load(file_path: str, field: str) -> pd.Series:
@@ -191,6 +193,7 @@ def dump(df: pd.DataFrame, save_name: str = '', save_dir: str = './Data', file_f
             raise ValueError('请输入有效的 format，可用的 format 为 csv，xlsx 和 json')
 
 
+# 预处理函数列表
 PRETREATMENT: list[Callable] = [add_datetime_field, drop_duplicates]
 
 def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv', callbacks: list[Callable] = PRETREATMENT) -> None:

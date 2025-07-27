@@ -20,9 +20,9 @@ cids: list[str] = [
 task: str = '延迟退休'
 
 # 若视频的 aid/bvid 列表来源自文件中的某一字段，则指定 file 参数中的各个键值对，以批量设置 aids/bvids/save_name 参数
-from_file: bool = True  # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，为 False 时则使用 aids/bvids 参数
+from_file: bool = False  # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，为 False 时则使用 aids/bvids 参数
 file: dict = {
-    'file_path': './' + 'bilibili_search_keywords=延迟退休_start=2024-09-13_end=2025-01-01_contents.csv',  # 文件路径
+    'file_path': './Data/' + 'bilibili_search_keywords=延迟退休_start=2024-09-13_end=2025-01-01_contents.csv',  # 文件路径
     'field': 'video_id',  # aid/bvid 在文件中的字段名
     'type': 'aid',  # 用于指定 aid 还是 bvid
     'prefix': '',  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的前缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
@@ -31,7 +31,7 @@ file: dict = {
 
 # 替换为你自己的 cookie，若提供多个 cookie，将在当前账号被监测到的时候自动替换为下一个账号
 cookies: list[str] = [ 
-    'buvid3=E4B0FF67-ED6D-3C9A-FAD7-C1E2D593C2B060088infoc; b_nut=1719544260; _uuid=5B778C10C-9594-12F8-361F-102CC6AAB4DAC61385infoc; enable_web_push=DISABLE; buvid4=16089B19-FFE6-58C5-CF1E-9E337FB79FC161029-024062803-z6Uxn9V9Crd0fXW3HIgGdw%3D%3D; rpdid=0zbfAI6DyH|2RQZtZ6J|1RD|3w1SqFRV; header_theme_version=CLOSE; LIVE_BUVID=AUTO4217286542998787; PVID=2; fingerprint=0885da303e16d96e4d000078be62ed7c; buvid_fp_plain=undefined; buvid_fp=0885da303e16d96e4d000078be62ed7c; CURRENT_QUALITY=80; Hm_lvt_8a6e55dbd2870f0f5bc9194cddf32a02=1736585546; is-2022-channel=1; _tea_utm_cache_586864={%22creative_id%22:181369634}; bp_t_offset_86137069=1022955905899036672; home_feed_column=5; bmg_af_switch=1; bmg_src_def_domain=i2.hdslb.com; bsource=search_bing; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzc2NTU5MTMsImlhdCI6MTczNzM5NjY1MywicGx0IjotMX0.WmBDGa2LmwoNdu6hxrYoF2OeQqN3zN1vci4eMJjlcEg; bili_ticket_expires=1737655853; bp_t_offset_71951017=1024938961019076608; b_lsid=1016D3110D_1948DC188AE; browser_resolution=1536-742; SESSDATA=04c6c984%2C1753102396%2C4ae7b%2A11CjDdLefxjn-jSKfok8u4oKlGYbOzFI512A3PsbHBvttVB7KxDdz7bsn7GuUe9rdVA08SVmRSaXowbWROMHhwOU9EU2p0emJ1ZVkwbG5qRm95LWpaMHZsXy1pY2dfNG44OF9hUHBCMTNYVkN1VTJWZlNPNjdGNzJSQ0N6SHA1Rm53N2tQN1NWTUxRIIEC; bili_jct=e0035e48f24e1b44cbc76cd2b44943bb; DedeUserID=86137069; DedeUserID__ckMd5=9c9e29b3c177de79; sid=4lumbk4r; CURRENT_FNVAL=4048',
+    "buvid3=12E6B44B-299C-8283-A6DA-895FBA5D2C8190084infoc; b_nut=1749045090; _uuid=3D77E2DC-BFF3-1A103-3154-C345C610271C891845infoc; enable_web_push=DISABLE; enable_feed_channel=ENABLE; buvid4=586306EA-CB13-A936-3BA1-9344DBD048E691930-025060421-wN7xdrpDVP17x4SI8qKsEg%3D%3D; DedeUserID=86137069; DedeUserID__ckMd5=9c9e29b3c177de79; rpdid=|(u||uJJklYY0J'u~RmuullRm; CURRENT_QUALITY=80; SESSDATA=fb837ee3%2C1764766189%2C69950%2A62CjAKT5RPpWkFp6IE7cWaPZMetPomR8l13btPdDHn8MSL5RdaznySWtMVPLjWzVgJ44wSVmprdXBjZlpSVVBLWTZwQkduREN1b01rSmtPNUY3UjlnejZzTTlWYWZqTXdDNTRacWdyUDBZWThtU0JlRDdoeFF4YWRJU1RMd1FDbF9WeDE2MUptTFB3IIEC; bili_jct=9bf34e15f90be316dac4b5bf2e1cfe08; fingerprint=053daf026bdf318192bfc7b9f908986f; buvid_fp_plain=undefined; buvid_fp=053daf026bdf318192bfc7b9f908986f; header_theme_version=OPEN; theme-tip-show=SHOWED; theme-avatar-tip-show=SHOWED; theme-switch-show=SHOWED; hit-dyn-v2=1; PVID=3; bp_t_offset_86137069=1092045020405432320; bmg_af_switch=1; bmg_src_def_domain=i0.hdslb.com; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTM2OTk4MTYsImlhdCI6MTc1MzQ0MDU1NiwicGx0IjotMX0.pqVcBfIGlexKaDHCg5ubpyWNSq0cuKAVryhJT2otlbM; bili_ticket_expires=1753699756; sid=6ghbycmx; home_feed_column=5; CURRENT_FNVAL=4048; b_lsid=383C28410_19849DF44AA; browser_resolution=1536-303",
 ]
 
 # 视频分 p

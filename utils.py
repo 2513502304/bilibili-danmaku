@@ -1,23 +1,20 @@
-from typing import Callable
 import logging
+from typing import Callable
 
-# 启用调试于 http.client 级别 (requests->urllib3->http.client)
-# 你将能看到 REQUEST，包括 HEADERS 和 DATA，以及包含 HEADERS 但不包含 DATA 的 RESPONSE
-# 唯一缺少的是 response.body，它不会被 log 记录
-try:  # for Python 3
-    from http.client import HTTPConnection
-except ImportError:
-    from httplib import HTTPConnection
+from rich.logging import RichHandler
 
-HTTPConnection.debuglevel = 0  # 大于 0 开启调试，日志冗余信息过多，不建议开启
+# ------------------------------------------- 日志 -------------------------------------------
 
 # 日志记录
 logging.basicConfig(
-    format='%(asctime)s %(name)s %(levelname)s (%(filename)s %(funcName)s %(lineno)d): %(message)s',
+    format='%(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
     level=logging.DEBUG,
+    handlers=[RichHandler()],
 )
 logger = logging.getLogger('bilibili-danmaku')
+
+# ------------------------------------------- 编解码 -------------------------------------------
 
 # bilibili aid 与 bvid 相互转换
 '''
@@ -182,7 +179,7 @@ def crack(text: str) -> str:
         index[3 - i] = get_crc_index(ht >> (i * 8))
         snum = crctable[index[3 - i]]
         ht ^= snum >> ((3 - i) * 8)
-    for i in range(100_000_000):  #! 1 亿次循环，理论上足够了，若查找不到对应 uid 则放弃查找
+    for i in range(100_000_000):  #!1 亿次循环，理论上足够了，若查找不到对应 uid 则放弃查找
         lastindex = crc32_last_index(i)
         if lastindex == index[3]:
             deepCheckData = deep_check(i, index)
@@ -194,4 +191,5 @@ def crack(text: str) -> str:
 
 
 if __name__ == '__main__':
-    av2bv(aid), bv2av(bvid)
+    print('aid:', aid, '-> bvid:', av2bv(aid))
+    print('bvid:', bvid, '-> aid:', bv2av(bvid))

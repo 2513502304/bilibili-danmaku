@@ -4,3 +4,4 @@ rich==13.7.0
 pandas==2.2.3
 numpy==2.2.1
 requests==2.32.3
+orjson==3.10.18
