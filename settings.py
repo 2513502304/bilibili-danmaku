@@ -2,32 +2,24 @@
 配置文件
 '''
 
+from utils import logger
+
 # 茜特拉莉（bushi，原神怎么你了）
-# 视频的 aid 列表，可选。若 aids 为空，则必须提供 bvids 参数。若设置了 file 参数，则忽略
-aids: list[str] = [
+# 视频的 aid 列表，可选。若 aids 为空，则必须提供 bvids 参数。若 from_file 参数为 True，且正确配置了 file 参数，则忽略
+aids: list[str] | None = [
     '113736958350047',
 ]
-# 视频的 bvid 列表，可选。若 bvids 为空，则必须提供 aids 参数。若设置了 file 参数，则忽略
-bvids: list[str] = [
+# 视频的 bvid 列表，可选。若 bvids 为空，则必须提供 aids 参数。若 from_file 参数为 True，且正确配置了 file 参数，则忽略
+bvids: list[str] | None = [
     'BV1ft6hYxE75',
 ]
-# 视频弹幕的 cid，ignore 该参数
-cids: list[str] = [
+# 视频弹幕的 cid，永远不会使用，忽略该参数
+cids: list[str] | None = [
     '27598718983',
 ]
 
 # 任务名称，用于设置记录信息的文件名
 task: str = '延迟退休'
-
-# 若视频的 aid/bvid 列表来源自文件中的某一字段，则指定 file 参数中的各个键值对，以批量设置 aids/bvids/save_name 参数
-from_file: bool = False  # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，为 False 时则使用 aids/bvids 参数
-file: dict = {
-    'file_path': './Data/' + 'bilibili_search_keywords=延迟退休_start=2024-09-13_end=2025-01-01_contents.csv',  # 文件路径
-    'field': 'video_id',  # aid/bvid 在文件中的字段名
-    'type': 'aid',  # 用于指定 aid 还是 bvid
-    'prefix': '',  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的前缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
-    'suffix': '-danmaku',  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的后缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
-}
 
 # 替换为你自己的 cookie，若提供多个 cookie，将在当前账号被监测到的时候自动替换为下一个账号
 cookies: list[str] = [ 
@@ -49,33 +41,42 @@ delay: float = 1
 # 转存的文件格式，默认为 csv，支持 csv，xlsx，json
 file_format: str = 'csv'
 
-# 转存的文件名称列表，必须与 aids/bvids 中提供的视频个数一致
-save_name: list[str] = [
+# 转存的文件名称列表，必须与 aids/bvids 中提供的视频个数一致。若 from_file 参数为 True，且正确配置了 file 参数，则忽略
+save_name: list[str] | None = [
     '茜特拉莉弹幕',
 ]
 
 # 转存的文件夹，默认为当前目录下的 Data 文件夹中
 save_dir: str = './Data'
 
+# 若视频的 aid/bvid 列表来源自文件中的某一字段，则指定 file 参数中的各个键值对，以**批量**设置 aids/bvids/save_name 参数
+from_file: bool = False  # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，用以代替 aids/bvids 参数，为 False 时则使用 aids/bvids 参数
+file: dict = {
+    'file_path': './Data/' + 'bilibili_search_keywords=延迟退休_start=2024-09-13_end=2025-01-01_contents.csv',  # 文件路径
+    'field': 'video_id',  # aid/bvid 在文件中的字段名
+    'type': 'aid',  # 用于指定 aid 还是 bvid
+    'prefix': '',  # 用以代替 save_name 参数中的各文件名称，将基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的前缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
+    'suffix': '-danmaku',  # 用以代替 save_name 参数中的各文件名称，将基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的后缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
+}
+
 # 是否添加 bilibili 弹幕用户信息字段，默认为 False。开启该功能可能会导致处理时间过长，因为涉及到通过 midHash 反查用户信息以及网络请求
 user_info: bool = False
 
 try:
     from storage import get_aid_form_file, get_bvid_form_file, add_user_information_field, PRETREATMENT
-    from utils import logger
     import os
 
-    # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，为 False 时则使用 aids/bvids 参数
+    # 视频的 aid/bvid 列表是否来源自文件中的某一字段，仅为 True 时读取文件字段，用以代替 aids/bvids 参数，为 False 时则使用 aids/bvids 参数
     if from_file:
         fp = file.get('file_path', '')  # 文件路径
         f = file.get('field', '')  # aid/bvid 在文件中的字段名
-        tp = file.get('type', '')  # 用于指定 aid 还是 bvid
-        pre = file.get('prefix', '')  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的前缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
-        suf = file.get('suffix', '')  # 基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的后缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
+        t = file.get('type', '')  # 用于指定 aid 还是 bvid
+        pre = file.get('prefix', '')  # 用以代替 save_name 参数中的各文件名称，将基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的前缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
+        suf = file.get('suffix', '')  # 用以代替 save_name 参数中的各文件名称，将基于文件中 aid/bvid 字段的各个值，批量为保存的文件名添加的后缀，文件名组成将为 prefix + aid/bvid + suffix + '.' + file_format
         # 文件是否存在
         if os.path.exists(fp):
             # 类型是否匹配
-            match tp:
+            match t:
                 case 'aid':
                     aids = get_aid_form_file(file_path=fp, field=f)  # 字段是否正确
                     save_name = [pre + aid + suf for aid in aids]
