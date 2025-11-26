@@ -1,6 +1,6 @@
-'''
+"""
 转存文件
-'''
+"""
 
 import os
 import time
@@ -13,64 +13,78 @@ from crawl import get_user_information
 from utils import crack, logger
 
 
-def load(file_path: str, field: str) -> pd.Series:
-    '''
+def load(
+    file_path: str,
+    field: str,
+) -> pd.Series:
+    """
     加载文件中的指定字段，以 pandas.Series 返回
     ---
     :param file_path: 完整文件路径，支持 csv，xlsx，json 文件格式
     :param field: 字段名称
     :return: 包含指定字段的 pandas.Series 对象
-    '''
-    file_format = file_path.split('.')[-1].lower()
+    """
+    file_format = file_path.split(".")[-1].lower()
     match file_format:
-        case 'csv':
+        case "csv":
             return pd.read_csv(file_path)[field]
-        case 'xlsx':
+        case "xlsx":
             return pd.read_excel(file_path)[field]
-        case 'json':
+        case "json":
             return pd.read_json(file_path)[field]
         case _:
-            raise ValueError('不受支持的文件格式，可用的文件格式为 csv，xlsx 和 json')
+            raise ValueError("不受支持的文件格式，可用的文件格式为 csv，xlsx 和 json")
 
 
-def get_aid_form_file(file_path: str, field: str) -> list[str]:
-    '''
+def get_aid_form_file(
+    file_path: str,
+    field: str,
+) -> list[str]:
+    """
     加载文件中的 aid 字段，以包含 aid 字符串的列表形式返回
     ---
     :param file_path: 完整文件路径，支持 csv，xlsx，json 文件格式
     :param field: aid 字段名称
     :return: 包含指定 aid 字符串的列表对象
-    '''
+    """
     return load(file_path=file_path, field=field).astype(str).tolist()
 
 
-def get_bvid_form_file(file_path: str, field: str) -> list[str]:
-    '''
+def get_bvid_form_file(
+    file_path: str,
+    field: str,
+) -> list[str]:
+    """
     加载文件中的 bvid 字段，以包含 bvid 字符串的列表形式返回
     ---
     :param file_path: 完整文件路径，支持 csv，xlsx，json 文件格式
     :param field: bvid 字段名称
     :return: 包含指定 bvid 字符串的列表对象
-    '''
+    """
     return load(file_path=file_path, field=field).astype(str).tolist()
 
 
-def add_datetime_field(df: pd.DataFrame) -> pd.DataFrame:
-    '''
+def add_datetime_field(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
     添加 bilibili 弹幕时间字段
     ---
     :param df: pandas.DataFrame
     :return: pandas.DataFrame
-    '''
+    """
     # 将 ctime 时间戳转换为 datetime64[ns]
-    t = pd.to_datetime(df['ctime'].astype(int), unit='s')
+    t = pd.to_datetime(df["ctime"].astype(int), unit="s")
     # 取年月日赋值给 date 字段
-    df['date'] = t.dt.date
+    df["date"] = t.dt.date
     # 取时分秒赋值给 time 字段
-    df['time'] = t.dt.time
+    df["time"] = t.dt.time
     return df
 
-def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
+
+def add_user_information_field(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
     """
     添加 bilibili 弹幕用户信息字段
 
@@ -81,11 +95,11 @@ def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: pandas.DataFrame
     """
     # 反匿名化 midHash，获取 uid 列表，并添加对应 uid 信息字段
-    for index, row in track(df.iterrows(), description='反匿名化中...', total=len(df)):
+    for index, row in track(df.iterrows(), description="反匿名化中...", total=len(df)):
         # 当前行出现的 midHash 值
-        midHash = row['midHash']
+        midHash = row["midHash"]
         # 先前行出现的 midHash 值
-        pre_midHash = df.iloc[:index]['midHash']
+        pre_midHash = df.iloc[:index]["midHash"]
         # 判断先前行中是否出现重复数据
         duplicates = pre_midHash[pre_midHash == midHash]
         # 如果有重复行，则使用先前行中重复出现的数据作为当前行的内容
@@ -94,15 +108,15 @@ def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
             logger.info(f'第 {index} 行，{midHash = } 在第 {duplicates.index[0]} 行中重复出现，将使用第 {duplicates.index[0]} 行的数据填充第 {index} 行中缺失值')
             time.sleep(0.5)  # 反爬
             continue
-        
+
         # 如果没有重复行，则使用当前行的 midHash 值进行反匿名化
         # 获取 uid
-        uid = crack(midHash)    #!耗时操作，替代了反爬所需的时间
+        uid = crack(midHash)  #!耗时操作，替代了反爬所需的时间
         # 添加 uid 字段
-        df.loc[index, 'uid'] = uid
+        df.loc[index, "uid"] = uid
         # 获取用户名片信息
         user_info = get_user_information(mid=uid, photo=True)
-            
+
         # 解析获取到的数据
         if user_info['code'] == 0:  # response right
             data = user_info['data']  # 信息本体
@@ -160,17 +174,26 @@ def add_user_information_field(df: pd.DataFrame) -> pd.DataFrame:
             logger.error(f'第 {index} 行，{midHash = }; {uid = }: {user_info["message"]}')
     return df
 
-def drop_duplicates(df: pd.DataFrame) -> pd.DataFrame:
-    '''
+
+def drop_duplicates(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
     去重 bilibili 弹幕字段
     ---
     :param df: pandas.DataFrame
     :return: pandas.DataFrame
-    '''
+    """
     return df.drop_duplicates(ignore_index=True)
 
-def dump(df: pd.DataFrame, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv') -> None:
-    '''
+
+def dump(
+    df: pd.DataFrame,
+    save_name: str = "",
+    save_dir: str = "./Data",
+    file_format: str = "csv",
+) -> None:
+    """
     将 pandas.DataFrame 转存为指定格式
     ---
     :param df: pandas.DataFrame
@@ -178,26 +201,33 @@ def dump(df: pd.DataFrame, save_name: str = '', save_dir: str = './Data', file_f
     :param save_dir: 转存的文件夹，可选。默认为当前目录下的 Data 文件夹中
     :param file_format: 转存的文件格式，可选。默认为 csv，支持 csv，xlsx，json
     :return: None
-    '''
+    """
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     save_path = os.path.join(save_dir, save_name)
     match file_format:
-        case 'csv':
-            df.to_csv(save_path + '.csv')
-        case 'xlsx':
-            df.to_excel(save_path + '.xlsx', engine='xlsxwriter')
-        case 'json':
-            df.to_json(save_path + '.json')
+        case "csv":
+            df.to_csv(save_path + ".csv")
+        case "xlsx":
+            df.to_excel(save_path + ".xlsx", engine="xlsxwriter")
+        case "json":
+            df.to_json(save_path + ".json")
         case _:
-            raise ValueError('请输入有效的 format，可用的 format 为 csv，xlsx 和 json')
+            raise ValueError("请输入有效的 format，可用的 format 为 csv，xlsx 和 json")
 
 
 # 预处理函数列表
 PRETREATMENT: list[Callable] = [add_datetime_field, drop_duplicates]
 
-def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data', file_format: str = 'csv', callbacks: list[Callable] = PRETREATMENT) -> None:
-    '''
+
+def dump_history_danmaku(
+    data: Any,
+    save_name: str = "",
+    save_dir: str = "./Data",
+    file_format: str = "csv",
+    callbacks: list[Callable] = PRETREATMENT,
+) -> None:
+    """
     转存历史弹幕
     ---
     :param data: 能够被 pandas 读取的任意数据，该数据将在函数内部被转换为 pandas.DataFrame 对象
@@ -206,7 +236,7 @@ def dump_history_danmaku(data: Any, save_name: str = '', save_dir: str = './Data
     :param file_format: 转存的文件格式，可选。默认为 csv，支持 csv，xlsx，json
     :param callbacks: 回调函数列表，列表元素接受一个类型为 pandas.DataFrame 的参数，用于执行转存数据前的预处理操作，并返回 pandas.DataFrame。默认为 PRETREATMENT
     :return: None
-    '''
+    """
     df = pd.DataFrame(data)
     if not df.empty:
         if callbacks:
